@@ -1,12 +1,16 @@
+from affichage import affichage
+import altair as alt
 import sys
 from pycparser import c_parser, parse_file, c_ast
 import os
 import openai
-import streamlit as st
 import re
-import altair as alt
 import pandas as pd
 
+os.system("clear")
+print(" █████╗ ███╗   ██╗ █████╗ ██╗  ██╗   ██╗███████╗███████╗██████╗ \n██╔══██╗████╗  ██║██╔══██╗██║  ╚██╗ ██╔╝██╔════╝██╔════╝██╔══██╗\n███████║██╔██╗ ██║███████║██║   ╚████╔╝ ███████╗█████╗  ██████╔╝\n██╔══██║██║╚██╗██║██╔══██║██║    ╚██╔╝  ╚════██║██╔══╝  ██╔══██╗\n██║  ██║██║ ╚████║██║  ██║███████╗██║   ███████║███████╗██║  ██║\n╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝")
+
+print("\033[1;34m    -   Lancement du Programme    -\033[1;37m")
 
 # Récupérer le nom du dossier actuel
 dirname = os.path.basename(os.getcwd())
@@ -17,7 +21,6 @@ def get_imported_libraries(content):
     final = ""
     for line in content.split("\n"):
         if line.startswith("#include") or line.startswith("# include") or line.startswith("import") or line.startswith("from"):
-            print(line)
             final += line + "\n"
     return final
 
@@ -32,7 +35,7 @@ def ask_gpt_turbo(question,nb_tokens=500):
     return response.choices[0].message.content
 
 
-def ia_de_num(prompt):
+def ia_de_num(prompt,nb_tokens=500):
     response = openai.Completion.create(
         engine="text-davinci-003",
         prompt=prompt,
@@ -92,12 +95,13 @@ for filename in os.listdir("."):
         lt_fonct.append(resume)
         # st.markdown("<h3 style='color: green;'>fonctionnement de "+filename+" :</h3>", unsafe_allow_html=True)
         # st.write(resume)
+        print("traitement de \033[1;31m"+filename+"\033[1;37m est finit")
         if(list_lib in lib):
             continue
         else:
             lib = lib+list_lib
 
-print(file_names)     
+print("Tout les fichiers sont traité")
 
 data = {'Name files': file_names, 'Lines count': file_nbline}
 df = pd.DataFrame(data)
@@ -108,35 +112,11 @@ bar_chart = alt.Chart(df).mark_bar().encode(
     x='Lines count',
 )
 
-# explication = ask_gpt_turbo(question)
-# question = "resume le text en diagrame ascii vertical :\n"+explication
-
-question = "resume le text en diagrame ascii vertical :\n"+explication
+question = "resume le text en diagrame simple ascii vertical visuel :\n"+explication
 diagrame = ask_gpt_turbo(question)
 
-question = "a quoi sert le code ? :\n"+explication
-explication = ia_de_num(question)
+print("Resumer du contenue en creation")
 
-def main():
-    titre = ("Analyse du code de " + dirname)
-    st.markdown("<h1 style='color: red;'>"+titre+"</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color: red;'>\nNombre de fonction : "+str(nb_def)+"</h3>", unsafe_allow_html=True)
-    st.markdown("<h4 style='white: purple;'> - Nombre de lignes total = "+str(number_of_lines)+"</h4>", unsafe_allow_html=True)
-    st.markdown("<h4 style='white: purple;'> - Nombre de mots total = "+str(number_mots)+"</h4>", unsafe_allow_html=True)
-    st.markdown("<h4 style='white: purple;'> - Nombre de lettres total = "+str(number_lettres)+"</h4>", unsafe_allow_html=True)
-    st.markdown("<h2 style='white: red;'>Les libraries :</h2>", unsafe_allow_html=True)
-    st.code(lib, language='python')
-    st.title("les grandes lignes de "+dirname)
-    st.markdown("<h2 style='white: red;'>Explication du projet :</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: green;'>les fichier present dans le repo : \n"+str(file_names)+"\n</p>", unsafe_allow_html=True)
-    st.write(explication)
-    st.markdown("<h2 style='white: red;'>Diagrame de fonctionnement :</h2>", unsafe_allow_html=True)
-    st.code(diagrame, language='python')
-    st.markdown("<h2 style='white: red;'>Comparatifs de lignes par fichiers :</h2>", unsafe_allow_html=True)
-    st.altair_chart(bar_chart, use_container_width=True)
-    st.markdown("<h2 style='white: red;'> Explication par fichier : </h2>", unsafe_allow_html=True)
-    for func in lt_fonct:
-        st.markdown("<h4 style='white: red;'>"+func+"\n</h4>", unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    main()
+print("page disponible sur :\033[1;34m http://localhost:8501/")
+affichage(dirname,nb_def,number_of_lines,number_mots,number_lettres,file_names,explication,diagrame,bar_chart,lt_fonct,lib)
